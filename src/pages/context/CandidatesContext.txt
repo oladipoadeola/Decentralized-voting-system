@@ -1,0 +1,81 @@
+import React, { createContext, useState, useEffect } from 'react';
+
+export const CandidatesContext = createContext();
+
+export const CandidatesProvider = ({ children }) => {
+  const [candidates, setCandidates] = useState([]);
+
+  useEffect(() => {
+    // Fetch candidates list when component mounts
+    getCandidatesList();
+  }, []);
+
+  async function connectToMetamask() {
+    if (window.ethereum) {
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        setProvider(provider);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        const currentAddress = await signer.getAddress();
+        setAccount(currentAddress);
+        console.log("Metamask Connected : " + currentAddress);
+        setIsConnected(true);
+        localStorage.setItem('isConnected', 'true');
+        localStorage.setItem('account', currentAddress);
+        fetchAdminStatus()
+      } catch (err) {
+        console.error(err);
+        setIsConnected(false);
+        localStorage.removeItem('isConnected');
+        localStorage.removeItem('account');
+      }
+    } else {
+      setIsConnected(false);
+      localStorage.removeItem('isConnected');
+      localStorage.removeItem('account');
+      console.error("Metamask is not detected in the browser")
+    }
+  }
+  
+  function handleAccountsChanged(accounts) {
+    if (accounts.length > 0 && account !== accounts[0]) {
+      setAccount(accounts[0]);
+      fetchAdminStatus()
+      getCandidatesList()
+      localStorage.removeItem('isConnected');
+      localStorage.removeItem('account');
+    } else {
+      setAccount(null);
+      setIsConnected(false);
+      localStorage.removeItem('isConnected');
+      localStorage.removeItem('account');
+
+    }
+  }
+
+  const getCandidatesList = async () =>{
+    try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send('eth_requestAccounts', []);
+        setProvider(provider);
+        const contract = new ethers.Contract(
+            contractAddress,
+            Election.abi,
+            provider.getSigner()
+        );
+        setContract(contract);
+        const candidateList = await contract.getCandidateList();
+        setCandidates(candidateList);
+    } catch (error) {
+        // setErrorMessage(error.message);
+    }
+
+}
+
+  return (
+    <CandidatesContext.Provider value={{ candidates, setCandidates }}>
+      {children}
+    </CandidatesContext.Provider>
+  );
+};

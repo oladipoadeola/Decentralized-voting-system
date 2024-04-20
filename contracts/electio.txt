@@ -1,0 +1,141 @@
+pragma solidity ^0.8.24;
+
+contract Election {
+    address public admin;
+    bool public electionStarted;
+    
+    struct Candidate {
+        uint256 id;
+        string firstName;
+        string lastName;
+        string email;
+        string gender;
+        string position;
+        string manifesto;
+        uint256 voteCount;
+        bool registered;
+    }
+    
+    struct Voter {
+        string firstName;
+        string lastName;
+        string email;
+        uint256 age;
+        string gender;
+        string nationality;
+        bool voted;
+    }
+    
+    Candidate[] public candidates; // Store candidates in an array
+    
+    mapping(address => Voter) public voters;
+    
+    uint256 public candidateCount; // Track candidate count
+    
+    event CandidateRegistered(uint256 id, string firstName, string lastName, string email, string gender, string position, string manifesto);
+    event VoteCast(address indexed voterAddress, uint256 indexed candidateId);
+    event ElectionResult(string winner);
+    event VoterRegistered(address indexed voterAddress, string firstName, string lastName, string email, uint256 age, string gender, string nationality);
+    
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "___Only admin can perform this operation___");
+        _;
+    }
+    
+    modifier onlyDuringElection() {
+        require(electionStarted, "___Election has not started yet___");
+        _;
+    }
+    
+    constructor(
+        string[] memory _firstNames,
+        string[] memory _lastNames,
+        string[] memory _emails,
+        string[] memory _genders,
+        string[] memory _positions,
+        string[] memory _manifestos
+    ) {
+        admin = msg.sender;
+        require(
+            _firstNames.length == _lastNames.length &&
+            _lastNames.length == _emails.length &&
+            _emails.length == _genders.length &&
+            _genders.length == _positions.length &&
+            _positions.length == _manifestos.length,
+            "___Invalid input lengths___"
+        );
+        for (uint256 i = 0; i < _firstNames.length; i++) {
+            candidates.push(Candidate(
+                i + 1,
+                _firstNames[i],
+                _lastNames[i],
+                _emails[i],
+                _genders[i],
+                _positions[i],
+                _manifestos[i],
+                0,
+                true
+            ));
+            emit CandidateRegistered(
+                i + 1,
+                _firstNames[i],
+                _lastNames[i],
+                _emails[i],
+                _genders[i],
+                _positions[i],
+                _manifestos[i]
+            );
+        }
+        candidateCount = _firstNames.length;
+    }
+
+    function startElection() public onlyAdmin {
+        electionStarted = true;
+    }
+
+    function registerCandidate(string memory _firstName, string memory _lastName, string memory _email,string memory _gender, string memory _position, string memory _manifesto) public onlyAdmin {
+        require(!electionStarted, "___Cannot register candidates after election has started___");
+        candidateCount++;
+        candidates.push(Candidate(candidateCount, _firstName, _lastName, _email, _gender, _position, _manifesto, 0, true));
+        emit CandidateRegistered(candidateCount, _firstName, _lastName, _email, _gender, _position, _manifesto);
+    }
+
+    function vote(uint256 _candidateId) public onlyDuringElection {
+        require(!voters[msg.sender].voted, "___You have already voted___");
+        require(_candidateId > 0 && _candidateId <= candidates.length, "___Invalid candidate ID___");
+        require(candidates[_candidateId - 1].registered, "___Candidate not found or not registered___");
+        require(bytes(voters[msg.sender].firstName).length > 0, "___You are not a registered voter___");
+        
+        candidates[_candidateId - 1].voteCount++;
+        voters[msg.sender].voted = true;
+        emit VoteCast(msg.sender, _candidateId);
+    }
+
+    
+    function endElection() public onlyAdmin {
+        require(electionStarted, "___Election has not started yet___");
+        uint256 maxVotes = 0;
+        uint256 winnerIndex;
+        for (uint256 i = 0; i < candidates.length; i++) {
+            if (candidates[i].voteCount > maxVotes) {
+                maxVotes = candidates[i].voteCount;
+                winnerIndex = i;
+            }
+        }
+        emit ElectionResult(string(abi.encodePacked(candidates[winnerIndex].firstName, " ", candidates[winnerIndex].lastName)));
+        electionStarted = false;
+    }
+    
+    function getCandidateList() public view returns (Candidate[] memory) {
+        return candidates;
+    }
+    
+    function registerVoter(string memory _firstName, string memory _lastName, string memory _email, uint256 _age, string memory _gender, string memory _nationality) public {
+        require(bytes(_firstName).length > 0 && bytes(_lastName).length > 0, "___First name and last name cannot be empty___");
+        require(bytes(_email).length > 0, "___Email cannot be empty___");
+        require(_age > 18, "___Age must be greater than zero___");
+        
+        voters[msg.sender] = Voter(_firstName, _lastName, _email, _age, _gender, _nationality, false);
+        emit VoterRegistered(msg.sender, _firstName, _lastName, _email, _age, _gender, _nationality);
+    }
+}
