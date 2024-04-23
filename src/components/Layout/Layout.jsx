@@ -5,7 +5,7 @@ import Navbar from "../Navbar/Navbar";
 export default function Layout(props) {
   return (
     <div>
-      <Navbar isConnected={props.isConnected} isAdmin={props.isAdmin} electionStarted={props.electionStarted} error={props.error} />
+      <Navbar data={props} />
       {props.children}
       <Footer />
     </div>

@@ -1,30 +1,26 @@
-// require("@nomicfoundation/hardhat-toolbox");
-// require('dotenv').config();
+require("@nomicfoundation/hardhat-toolbox");
+require('dotenv').config();
 
-// /** @type import('hardhat/config').HardhatUserConfig */
-// module.exports = {
-//     solidity: "0.8.24",
-//     paths: {
-//         artifacts: './src/artifacts/',
-//     },
-//     networks: {
-//         hardhat:{
-//             chainId: 1337
-//         }
-//         // rinkeby: {
-//         //     url: process.env.ALCHEMY_RINKEBY_URL,
-//         //     accounts: [process.env.ACCOUNT_PRIVATE_KEY],
-//         // },
-//     },
-// };
+/** @type import('hardhat/config').HardhatUserConfig */
+module.exports = {
+    solidity: "0.8.24",
+    paths: {
+        artifacts: './src/artifacts/',
+    },
+    networks: {
+        hardhat:{
+            chainId: 1337
+        }
+        // rinkeby: {
+        //     url: process.env.ALCHEMY_RINKEBY_URL,
+        //     accounts: [process.env.ACCOUNT_PRIVATE_KEY],
+        // },
+    },
+};
 
 /**
 * @type import('hardhat/config').HardhatUserConfig
 */
-
-
-// require("@nomicfoundation/hardhat-toolbox");
-// require('dotenv').config();
 require('dotenv').config();
 require("@nomiclabs/hardhat-ethers");
 
@@ -41,6 +37,7 @@ module.exports = {
         chainId: 1337
       },
       volta: {
+         chainId: 73799,
          url: API_URL,
          accounts: [`0x${PRIVATE_KEY}`],
          gas: 210000000,

@@ -26,20 +26,20 @@ contract Election {
         uint256 age;
         string gender;
         string nationality;
-        mapping(string => bool) votedPositions; // Track voted positions
+        mapping(string => bool) votedPositions;
         bool voted;
     }
     
-    Candidate[] public candidates; // Store candidates in an array
+    Candidate[] public candidates;
     
     mapping(address => Voter) public voters;
     
-    mapping(string => bool) public candidateEmailExists; // Mapping to track used email addresses
+    mapping(string => bool) public candidateEmailExists;
 
-    mapping(string => bool) public voterEmailExists; // Mapping to track used email addresses
+    mapping(string => bool) public voterEmailExists;
 
 
-    uint256 public candidateCount; // Track candidate count
+    uint256 public candidateCount;
     
     event CandidateRegistered(uint256 id, string firstName, string lastName, string email, string gender, string position, string manifesto);
     event VoteCast(address indexed voterAddress, uint256 indexed candidateId);
@@ -49,12 +49,8 @@ contract Election {
         // Event definition
     event ElectionResultss(string position, string winner, uint256 voteCount);
 
-    event AdminAccessDenied(string message);
     modifier onlyAdmin() {
-        if (msg.sender != admin) {
-            emit AdminAccessDenied("___Only admin can perform this operation___");
-            return;
-        }
+        require(msg.sender == admin, "___Only admin can perform this operation___");
         _;
     }
     
@@ -109,12 +105,27 @@ contract Election {
         }
         
         candidateCount = _firstNames.length;
-
     }
 
     function startElection() public onlyAdmin {
+        resetAllVotes();
         electionStarted = true;
     }
+
+    function resetAllVotes() internal {
+        for (uint256 i = 0; i < candidates.length; i++) {
+            candidates[i].voteCount = 0;
+
+            for (uint256 j = 0; j < candidates[i].votersWhoVotedForCandidate.length; j++) {
+                address voterAddress = candidates[i].votersWhoVotedForCandidate[j];
+                voters[voterAddress].voted = false;
+                voters[voterAddress].votedPositions[candidates[i].position] = false;
+            }
+
+            candidates[i].votersWhoVotedForCandidate = new address[](0);
+        }
+    }
+
 
     modifier validPosition(string memory _position) {
         bool isValid = false;
@@ -139,7 +150,6 @@ contract Election {
     }
 
     function vote(uint256 _candidateId) public onlyDuringElection {
-        // require(!voters[msg.sender].voted, "___You have already voted___");
         require(_candidateId > 0 && _candidateId <= candidates.length, "___Invalid candidate ID___");
         require(candidates[_candidateId - 1].registered, "___Candidate not found or not registered___");
         require(bytes(voters[msg.sender].firstName).length > 0, "___You are not a registered voter___");
@@ -157,11 +167,6 @@ contract Election {
     
     function endElection() public onlyAdmin {
         require(electionStarted, "___Election has not started yet___");
-        // Clear all votes
-        // for (uint256 i = 0; i < candidates.length; i++) {
-        //     candidates[i].voteCount = 0;
-        // }
-
         electionStarted = false;
     }
     

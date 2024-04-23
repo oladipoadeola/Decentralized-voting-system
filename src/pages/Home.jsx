@@ -7,27 +7,20 @@ import { toast } from 'react-toastify';
 
 const Home = (props) => {
     const [provider, setProvider] = useState(null);
-    // const [contract, setContract] = useState(null);
     const [candidates, setCandidates] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
-
-    // Connect to Ethereum network using ethers.js provider
-
 
     const convertBigNumber = (bigNumberFromSolidity) => {
         if (!bigNumberFromSolidity || !bigNumberFromSolidity._hex) {
             return 0;
         }
         const javascriptNumber = ethers.BigNumber.from(bigNumberFromSolidity._hex).toNumber();
-        console.log(javascriptNumber);
         return javascriptNumber;
     }
 
 
     const handleVote = async (candidateId) => {
-        console.log(props.candidates)
         try {
-            console.log(props.candidates)
             if (!props.contract) {
                 throw new Error('Contract not initialized');
             }
@@ -35,10 +28,9 @@ const Home = (props) => {
             setCandidates(prevCandidates => prevCandidates.filter(candidate => candidate.id !== candidateId));
             toast.success("Your vote is successful")
             setTimeout(() => {
-                window.location.reload(); 
-            }, 700);
+                window.location.reload();
+            }, 15000);
         } catch (error) {
-            console.log(error, 'error this')
             toast.error(extractErrorCode(error.message))
         }
     };
@@ -62,6 +54,18 @@ const Home = (props) => {
                         <p>Welcome to our secure and convenient electronic voting platform! We're delighted to have you participate
                             in the democratic process from the comfort of your own home..</p>
                     </div>
+                    {props.error === null && !props.isAdmin && (
+                        <div align="center">
+                            {props.isElectionStarted ? (
+                                <span className="pill-button btn-success blink text-white p-2" style={{ cursor: 'not-allowed' }}>The election has started, now you are permitted to vote</span>
+                            ) : (
+                                <span className="pill-button btn-danger blink text-white p-2" style={{ cursor: 'not-allowed' }}>The election has not started, you are not permitted to vote </span>
+                            )}
+                            <br />
+                            <br />
+                        </div>
+                    )}
+
                     <div className="row">
                         {props.error === null ? props.candidates.map(candidate => (
                             <div className="col-lg-4 col-md-6">
@@ -73,16 +77,16 @@ const Home = (props) => {
                                     <button data-bs-toggle="modal" data-bs-target="#exampleModal"
                                         className="btn btn-primary fw-bolder fs-8">View Manifesto </button>
                                     {props.account ? candidate.votersWhoVotedForCandidate.map(voter => voter.toLowerCase()).includes(props.account.toLowerCase()) ? (
-                                            <button className="btn btn-success fw-bolder px-4 ms-2 fs-8" disabled>Voted</button>
-                                        ) : (
-                                            <button className="btn btn-danger fw-bolder px-4 ms-2 fs-8" onClick={() => handleVote(candidate.id)}>Vote</button>
-                                        )
-                                    : (<button className="btn btn-danger fw-bolder px-4 ms-2 fs-8" onClick={() => handleVote(candidate.id)}>Vote</button>)}
+                                        <button className="btn btn-success fw-bolder px-4 ms-2 fs-8" disabled>Voted</button>
+                                    ) : (
+                                        <button className="btn btn-danger fw-bolder px-4 ms-2 fs-8" onClick={() => handleVote(candidate.id)}>Vote</button>
+                                    )
+                                        : (<button className="btn btn-danger fw-bolder px-4 ms-2 fs-8" onClick={() => handleVote(candidate.id)}>Vote</button>)}
                                 </div>
                             </div>
                         )) :
-                            <div className='p-5'>
-                                <h4 className='text-danger text-center'>Looks like you have not logged in on Metamask! </h4>
+                            <div className='p-5 text-center'>
+                                <span className="pill-button btn-info text-white p-2" style={{ cursor: 'not-allowed' }}>Looks like you are not connected to Metamask!</span>
                             </div>}
 
                     </div>

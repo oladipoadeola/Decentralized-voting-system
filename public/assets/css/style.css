@@ -488,6 +488,7 @@ body {
   padding: 20px;
   background-color: #7e7e7e;
   color: #FFF;
+  margin-top:15%;
 }
 .copy a {
   color: #FFF;
@@ -548,11 +549,11 @@ body {
   .registration-container .container{
     width: 50%;
     display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+    }
   }
-}
 
 
 
@@ -621,4 +622,36 @@ body {
 
 .account-address {
   word-break: break-all;
+}
+
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.blink {
+  animation: blink 100s linear infinite;
+}
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.blink {
+  animation: blink 1s linear infinite;
 }

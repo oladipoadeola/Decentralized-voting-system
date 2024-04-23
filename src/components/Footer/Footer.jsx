@@ -9,7 +9,7 @@ function Footer() {
             <footer className="copy">
                     <div className="container">
                         <div className="text-center">
-                            <Link to="https://www.smarteyeapps.com/">{currentYear} &copy; All Rights Reserved | Designed and Developed by Deborah Oladipo</Link>
+                            <Link to="">{currentYear} &copy; All Rights Reserved | Designed and Developed by Deborah Oladipo</Link>
                         </div>
                     </div>
             </footer>

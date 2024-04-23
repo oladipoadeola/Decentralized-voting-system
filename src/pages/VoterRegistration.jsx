@@ -26,6 +26,12 @@ function VoterRegistration() {
     const handleSubmit = async (event) => {
         event.preventDefault();
 
+        const { age } = formData;
+        if (parseInt(age) < 18) {
+            toast.error("Age must be 18 or above for registration.");
+            return;
+        }
+
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const abi = Election.abi;
         const contract = new ethers.Contract(contractAddress, abi, provider.getSigner());
@@ -54,8 +60,8 @@ function VoterRegistration() {
             toast.success('Registration Successful');
 
         } catch (error) {
-            console.log(error, 'kkkk')
-            toast.error(extractErrorCode(error.toString()))
+            toast.error("Seems like you have already registered or the input email already exist")
+        
         }
     };
 

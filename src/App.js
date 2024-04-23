@@ -13,6 +13,7 @@ import { ToastContainer, toast } from 'react-toastify';
 
 import 'react-toastify/dist/ReactToastify.css';
 import Loader from './components/Loader';
+import extractErrorCode from './helpers/extractErrorCode';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -20,13 +21,15 @@ function App() {
   const [account, setAccount] = useState(null);
   const [provider, setProvider] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [electionStarted, setElectionStarted] = useState(false);
+  const [isElectionStarted, setIsElectionStarted] = useState(false);
   const [contract, setContract] = useState(null);
   const [candidates, setCandidates] = useState([]);
   const [error, setError] = useState(null);
   const [metamaskInstalled, setMetamaskInstalled] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
+    connectToEthereum();
     if (window.ethereum) {
       window.ethereum.on('accountsChanged', handleAccountsChanged);
       setMetamaskInstalled(true); // Set to true if MetaMask is detected
@@ -53,21 +56,6 @@ function App() {
     }
   }
 
-
-      // const handleVote = async (candidateId) => {
-    //     console.log(props.candidates)
-    //     try {
-    //         console.log(props.candidates)
-    //         if (!props.contract) {
-    //             throw new Error('Contract not initialized');
-    //         }
-    //         await props.contract.vote(candidateId);
-    //         setCandidates(prevCandidates => prevCandidates.filter(candidate => candidate.id !== candidateId));
-    //         toast.success("Your vote is successful")
-    //     } catch (error) {
-    //         toast.error(extractErrorCode(error.message))
-    //     }
-    // };
   function removeAccountFromStorage(){
     localStorage.removeItem('isConnected');
     localStorage.removeItem('account');
@@ -121,9 +109,6 @@ function App() {
       const currentAddress = await signer.getAddress();
       setIsAdmin(admin === currentAddress);
 
-      // Check if election has started
-      const isElectionStarted = await contract.electionStarted();
-      setElectionStarted(isElectionStarted);
       if (admin === currentAddress) {
         setIsAdmin(true);
         localStorage.setItem('isAdmin', 'true');
@@ -160,6 +145,60 @@ function App() {
     }
   };
 
+
+      // Function to start the election
+      const startElection = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const abi = Election.abi; 
+            const contract = new ethers.Contract(contractAddress, abi, provider.getSigner());
+
+            const tx = await contract.startElection();
+            await tx.wait();
+            const isElectionStarted = await contract.electionStarted();
+            setIsElectionStarted(isElectionStarted);    
+
+            toast.success('Election started successfully');
+        } catch (error) {
+            setErrorMessage(error.message);
+            toast.error(extractErrorCode(error.message))
+
+        }
+    };
+
+    const endElection = async () => {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const abi = Election.abi; 
+        const contract = new ethers.Contract(contractAddress, abi, provider.getSigner());
+        
+        try {
+            const tx = await contract.endElection();
+            
+            await tx.wait();
+            const isElectionStarted = await contract.electionStarted();
+            setIsElectionStarted(isElectionStarted);  
+            toast.info('Election ended successfully');
+        } catch (error) {
+            setErrorMessage(error.message);
+            toast.error(extractErrorCode(error.message))
+
+        }
+    };
+    
+
+    const connectToEthereum = async () => {
+        try {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);               
+            const contract = new ethers.Contract(contractAddress, Election.abi, provider.getSigner());
+
+        const isElectionStarted = await contract.electionStarted();
+        setIsElectionStarted(isElectionStarted);  
+
+        } catch (error) {
+            setErrorMessage(error.message);
+        }
+    };
+  
   const ProtectedRoute = ({ element, ...rest }) => {
     if (!isAdmin) {
       return isConnected && error === null ? (
@@ -182,14 +221,14 @@ function App() {
     <div className="App">
       <BrowserRouter>
         {metamaskInstalled ? (
-          <Layout error={error} isConnected={isConnected} isAdmin={isAdmin} electionStarted={electionStarted}>
+          <Layout error={error} isConnected={isConnected} isAdmin={isAdmin} isElectionStarted={isElectionStarted} startElection = {startElection} endElection ={endElection}>
            {loading ? (
               <Loader/>
             ) : (
             <div className="main-content">
               <ToastContainer position="bottom-right" draggable pauseOnHover theme='dark' />
               <Routes>
-                <Route path="/" element={<Home candidates={candidates} contract={contract} account={account} error={error}/>} />
+                <Route path="/" element={<Home candidates={candidates} contract={contract} account={account} error={error} isElectionStarted={isElectionStarted} isAdmin={isAdmin}/>} />
                 <Route path="/login" element={<Login isConnected={isConnected} connectToMetamask={connectToMetamask} account={account} />} />
 
                 <Route path="/result"
@@ -220,7 +259,7 @@ function App() {
           </Layout>
         ) : (
           <div className="w-50 d-flex justify-content-center align-items-center min-vh-100 m-auto">
-            <h5 className='text-danger text-center'>MetaMask is not installed in the browser. Please install MetaMask to use this application.</h5>
+            <h5 className='text-danger text-center'>MetaMask is not installed in the browser. Please install MetaMask and refresh this page to use this application.</h5>
           </div>
         )}
       </BrowserRouter>

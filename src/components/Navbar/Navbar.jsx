@@ -4,81 +4,18 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Login
     from '../../pages/Login';
-import { toast } from 'react-toastify';
-import extractErrorCode from '../../helpers/extractErrorCode';
-import { contractAddress } from '../../constant/constant';
-import Election from "../../artifacts/contracts/Election.sol/Election.json";
-import { ethers } from 'ethers'; // Import ethers.js library
+
 
 const Navbar = (props) => {
-    const [errorMessage, setErrorMessage] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [electionStarted, setElectionStarted] = useState(false);
 
     const handleToggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
 
-    useEffect(() => {
-        const connectToEthereum = async () => {
-            try {
-                const provider = new ethers.providers.Web3Provider(window.ethereum);               
-                const contract = new ethers.Contract(contractAddress, Election.abi, provider.getSigner());
+    let data = props.data
 
-            const isElectionStarted = await contract.electionStarted();
-            setElectionStarted(isElectionStarted);  
-
-            } catch (error) {
-                setErrorMessage(error.message);
-            }
-        };
-        connectToEthereum();
-    }, []);
-    
-    // Function to start the election
-    const startElection = async () => {
-       
-        
-        try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const abi = Election.abi; 
-            const contract = new ethers.Contract(contractAddress, abi, provider.getSigner());
-
-            const tx = await contract.startElection();
-
-           
-        
-            await tx.wait();
-            const isElectionStarted = await contract.electionStarted();
-            setElectionStarted(isElectionStarted);    
-
-            toast.success('Election started successfully');
-        } catch (error) {
-            setErrorMessage(error.message);
-            toast.error(extractErrorCode(error.message))
-
-        }
-    };
-
-    const endElection = async () => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const abi = Election.abi; 
-        const contract = new ethers.Contract(contractAddress, abi, provider.getSigner());
-        
-        try {
-            const tx = await contract.endElection();
-            
-            await tx.wait();
-            const isElectionStarted = await contract.electionStarted();
-            setElectionStarted(isElectionStarted);  
-            toast.info('Election ended successfully');
-        } catch (error) {
-            setErrorMessage(error.message);
-            toast.error(extractErrorCode(error.message))
-
-        }
-    };
 
     return (
         <div className="header container-fluid bg-white">
@@ -98,21 +35,21 @@ const Navbar = (props) => {
 
 
 
-                                {!props.isAdmin && (
+                                {!data.isAdmin && (
                                     <React.Fragment>
                                         <li className="float-md-start px-4 pe-1 py-3">
                                             <Link to="/login" component={Login} className="btn fw-bold fs-8 btn-outline-primary px-5">
-                                                {props.isConnected ? <i className="bi bi-person-check"></i> : <i className="bi bi-box-arrow-in-right"></i>} {props.isConnected ? 'Account' : 'Login'}
+                                                {data.isConnected ? <i className="bi bi-person-check"></i> : <i className="bi bi-box-arrow-in-right"></i>} {data.isConnected ? 'Account' : 'Login'}
                                             </Link>
                                         </li>
                                     </React.Fragment>
                                 )}
 
-                                {props.isConnected ? (<li className="float-md-start px-4 pe-1 py-3">
+                                {!data.isAdmin && data.isConnected ? (<li className="float-md-start px-4 pe-1 py-3">
                                     <Link to="/voter-registration" className='btn fw-bold fs-8 btn-primary'><i className="bi bi-r-circle-fill"></i> Register as Voter</Link>
                                 </li>) : ''}
                                 
-                                {props.isAdmin && (
+                                {data.isAdmin && (
                                     <React.Fragment>
                                         <li className="float-md-start px-4 pe-1 py-3">
                                             <Link to="/candidate-registration" className='btn fw-bold fs-8 btn-primary'>
@@ -120,8 +57,8 @@ const Navbar = (props) => {
                                             </Link>
                                         </li>
                                         <li className="float-md-start px-4 pe-1 py-3">
-                                            {electionStarted ? (<button onClick={endElection} className='btn fw-bold fs-8 btn-danger'><i className="bi bi-skip-start-fill"></i> End Election</button>) :
-                                            (<button onClick={startElection} className='btn fw-bold fs-8 btn-success'><i className="bi bi-skip-start-fill"></i> {electionStarted} Start Election</button>)}
+                                            {data.isElectionStarted ? (<button onClick={data.endElection} className='btn fw-bold fs-8 btn-danger'><i className="bi bi-skip-start-fill"></i> End Election</button>) :
+                                            (<button onClick={data.startElection} className='btn fw-bold fs-8 btn-success'><i className="bi bi-skip-start-fill"></i> {data.isElectionStarted} Start Election</button>)}
                                         </li>
                                     </React.Fragment>
                                 )}

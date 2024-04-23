@@ -1,13 +1,11 @@
 const extractErrorCode = (str) => {
     const delimiter = '___';
     const firstOccurrence = str.indexOf(delimiter);
-    console.log(str)
     if (firstOccurrence === -1) {
         return "An error occurred";
     }
 
     const secondOccurrence = str.indexOf(delimiter, firstOccurrence + delimiter.length);
-    console.log(secondOccurrence)
     if (secondOccurrence === -1) {
         return "An error occurred";
     }

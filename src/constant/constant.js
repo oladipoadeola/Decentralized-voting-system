@@ -1,5 +1,5 @@
-// const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; //hardhat
-const contractAddress = "0x4f42528B7bF8Da96516bECb22c1c6f53a8Ac7312"
+const contractAddress = "0x46b142DD1E924FAb83eCc3c08e4D46E82f005e0E"; //hardhat
+// const contractAddress = "0xF85895D097B2C25946BB95C4d11E2F3c035F8f0C"
 
 const data = {
     firstNames: [
