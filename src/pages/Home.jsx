@@ -4,11 +4,13 @@ import { contractAddress } from '../constant/constant';
 import Election from "../artifacts/contracts/Election.sol/Election.json";
 import extractErrorCode from '../helpers/extractErrorCode';
 import { toast } from 'react-toastify';
+import Loader from '../components/Loader';
 
 const Home = (props) => {
     const [provider, setProvider] = useState(null);
     const [candidates, setCandidates] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const convertBigNumber = (bigNumberFromSolidity) => {
         if (!bigNumberFromSolidity || !bigNumberFromSolidity._hex) {
@@ -19,21 +21,72 @@ const Home = (props) => {
     }
 
 
+    // const handleVote = async (candidateId) => {
+    //     try {
+    //         if (!props.contract) {
+    //             throw new Error('Contract not initialized');
+    //         }
+    //         await props.contract.vote(candidateId);
+    //         setCandidates(prevCandidates => prevCandidates.filter(candidate => candidate.id !== candidateId));
+    //         toast.success("Your vote is successful")
+    //         setTimeout(() => {
+    //             window.location.reload();
+    //         }, 15000);
+    //     } catch (error) {
+    //         toast.error(extractErrorCode(error.message))
+    //     }
+    // };
+
+    const provide = new ethers.providers.Web3Provider(window.ethereum);
     const handleVote = async (candidateId) => {
         try {
             if (!props.contract) {
                 throw new Error('Contract not initialized');
             }
-            await props.contract.vote(candidateId);
-            setCandidates(prevCandidates => prevCandidates.filter(candidate => candidate.id !== candidateId));
-            toast.success("Your vote is successful")
-            setTimeout(() => {
-                window.location.reload();
-            }, 15000);
+
+            showLoader();
+
+            const transaction = await props.contract.vote(candidateId);
+            const transactionHash = transaction.hash;
+
+            const intervalId = setInterval(async () => {
+                const transactionStatus = await getTransactionStatus(transactionHash);
+                if (transactionStatus === 'confirmed') {
+                    clearInterval(intervalId);
+                    setCandidates(prevCandidates => prevCandidates.filter(candidate => candidate.id !== candidateId));
+                    toast.success("Your vote is successful")
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 15000);
+                }
+            }, 3000);
         } catch (error) {
-            toast.error(extractErrorCode(error.message))
+            hideLoader();
+            toast.error(extractErrorCode(error.message));
         }
     };
+
+    // Show loader
+    function showLoader() {
+        setIsLoading(true)
+        console.log('Loader displayed');
+    }
+
+    // Hide loader
+    function hideLoader() {
+        console.log('Loader hidden');
+        setIsLoading(false)
+
+    }
+
+    async function getTransactionStatus(transactionHash) {
+        const receipt = await provide.getTransactionReceipt(transactionHash);
+        if (receipt && receipt.status === 1) {
+            return 'confirmed';
+        } else {
+            return 'pending';
+        }
+    }
 
     const truncateWord = (word, maxLength) => {
         if (!word) return null;
@@ -47,6 +100,7 @@ const Home = (props) => {
 
     return (
         <div>
+            {isLoading ? <Loader/> : ''}
             <div className="home">
                 <div className="container-xl big-padding">
                     <div className="row section-title">
