@@ -4,8 +4,9 @@ import Election from "../artifacts/contracts/Election.sol/Election.json";
 import { contractAddress } from '../constant/constant';
 import extractErrorCode from "../helpers/extractErrorCode";
 import { toast } from 'react-toastify';
+import Loader from "../components/Loader";
 
-function CandidateRegistration() {
+function CandidateRegistration(props) {
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -22,17 +23,17 @@ function CandidateRegistration() {
             [name]: value
         });
     };
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-
         // Connect to the Ethereum provider
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
 
         const abi = Election.abi; // ABI of your Solidity contract
         const contract = new ethers.Contract(contractAddress, abi, provider.getSigner());
-        
+
         try {
+            props.showLoader();
             const tx = await contract.registerCandidate(
                 formData.firstName,
                 formData.lastName,
@@ -41,27 +42,46 @@ function CandidateRegistration() {
                 formData.position,
                 formData.manifesto
             );
+            const transactionHash = tx.hash;
 
             await tx.wait();
 
-            setFormData({
-                firstName: "",
-                lastName: "",
-                email: "",
-                // age: "",
-                gender: "",
-                position: "",
-                manifesto: ""
-            });
-            toast.success('Registration Successful');
+            const intervalId = setInterval(async () => {
+                const transactionStatus = await getTransactionStatus(transactionHash);
+                if (transactionStatus === 'confirmed') {
+                    setFormData({
+                        firstName: "",
+                        lastName: "",
+                        email: "",
+                        gender: "",
+                        position: "",
+                        manifesto: ""
+                    });
+                    clearInterval(intervalId);
+                    toast.success('Registration Successful');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 15000);
+                }
+            }, 3000);
         } catch (error) {
-            toast.error(extractErrorCode
-                (error.toString()))
+            props.hideLoader();
+            toast.error(extractErrorCode(error.toString()))
         }
     };
 
+    async function getTransactionStatus(transactionHash) {
+        const receipt = await provider.getTransactionReceipt(transactionHash);
+        if (receipt && receipt.status === 1) {
+            return 'confirmed';
+        } else {
+            return 'pending';
+        }
+    }
+
     return (
         <>
+            {props.isLoading ? <Loader /> : ''}
             <div className="registration-container">
                 <div className="container mt-5 mb-5">
                     <h4 className="mb-4">Candidate's Registration Form</h4>
@@ -77,9 +97,7 @@ function CandidateRegistration() {
                         <div className="mb-3">
                             <input type="email" className="form-control" placeholder="Email" name="email" value={formData.email} onChange={handleInputChange} required />
                         </div>
-                        {/* <div className="mb-3">
-                            <input type="number" className="form-control" placeholder="Age" name="age" value={formData.age} onChange={handleInputChange} required />
-                        </div> */}
+
                         <div className="mb-3">
                             <select className="form-select" name="gender" value={formData.gender} onChange={handleInputChange} required>
                                 <option value="" disabled>Select Gender</option>

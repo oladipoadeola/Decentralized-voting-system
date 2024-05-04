@@ -485,10 +485,13 @@ body {
 }
 
 .copy {
-  padding: 20px;
   background-color: #7e7e7e;
   color: #FFF;
-  margin-top:15%;
+
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 10px 0;
 }
 .copy a {
   color: #FFF;
@@ -655,3 +658,5 @@ body {
 .blink {
   animation: blink 1s linear infinite;
 }
+
+

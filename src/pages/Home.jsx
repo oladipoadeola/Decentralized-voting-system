@@ -1,51 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers'; // Import ethers.js
-import { contractAddress } from '../constant/constant';
-import Election from "../artifacts/contracts/Election.sol/Election.json";
 import extractErrorCode from '../helpers/extractErrorCode';
 import { toast } from 'react-toastify';
 import Loader from '../components/Loader';
+import Modal from 'react-modal';
 
+const customStyles = {
+    content: {
+        top: '50%',
+        left: '50%',
+        right: 'auto',
+        bottom: 'auto',
+        marginRight: '-50%',
+        transform: 'translate(-50%, -50%)',
+    },
+};
 const Home = (props) => {
-    const [provider, setProvider] = useState(null);
     const [candidates, setCandidates] = useState([]);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+    const [modalIsOpen, setIsOpen] = useState(false);
+    const [manifesto, setManifesto] = useState('');
 
-    const convertBigNumber = (bigNumberFromSolidity) => {
-        if (!bigNumberFromSolidity || !bigNumberFromSolidity._hex) {
-            return 0;
-        }
-        const javascriptNumber = ethers.BigNumber.from(bigNumberFromSolidity._hex).toNumber();
-        return javascriptNumber;
-    }
-
-
-    // const handleVote = async (candidateId) => {
-    //     try {
-    //         if (!props.contract) {
-    //             throw new Error('Contract not initialized');
-    //         }
-    //         await props.contract.vote(candidateId);
-    //         setCandidates(prevCandidates => prevCandidates.filter(candidate => candidate.id !== candidateId));
-    //         toast.success("Your vote is successful")
-    //         setTimeout(() => {
-    //             window.location.reload();
-    //         }, 15000);
-    //     } catch (error) {
-    //         toast.error(extractErrorCode(error.message))
-    //     }
-    // };
-
-    const provide = new ethers.providers.Web3Provider(window.ethereum);
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
     const handleVote = async (candidateId) => {
         try {
             if (!props.contract) {
                 throw new Error('Contract not initialized');
             }
 
-            showLoader();
-
+            props.showLoader();
             const transaction = await props.contract.vote(candidateId);
             const transactionHash = transaction.hash;
 
@@ -61,26 +43,13 @@ const Home = (props) => {
                 }
             }, 3000);
         } catch (error) {
-            hideLoader();
+            props.hideLoader();
             toast.error(extractErrorCode(error.message));
         }
     };
 
-    // Show loader
-    function showLoader() {
-        setIsLoading(true)
-        console.log('Loader displayed');
-    }
-
-    // Hide loader
-    function hideLoader() {
-        console.log('Loader hidden');
-        setIsLoading(false)
-
-    }
-
     async function getTransactionStatus(transactionHash) {
-        const receipt = await provide.getTransactionReceipt(transactionHash);
+        const receipt = await provider.getTransactionReceipt(transactionHash);
         if (receipt && receipt.status === 1) {
             return 'confirmed';
         } else {
@@ -98,9 +67,21 @@ const Home = (props) => {
         }
     }
 
+    function openModal(candidate) {
+        setIsOpen(true);
+        setManifesto(candidate.manifesto);
+    }
+
+    function afterOpenModal() {
+        // references are now sync'd and can be accessed.
+    }
+
+    function closeModal() {
+        setIsOpen(false);
+    }
     return (
         <div>
-            {isLoading ? <Loader/> : ''}
+            {props.isLoading ? <Loader /> : ''}
             <div className="home">
                 <div className="container-xl big-padding">
                     <div className="row section-title">
@@ -128,8 +109,8 @@ const Home = (props) => {
                                     <h4 className="mt-3 fs-5 mb-1 fw-bold">{candidate.firstName + ' ' + candidate.lastName}</h4>
                                     <h6 className="fs-7">Running to Be: <span className="text-primary fw-bold">{candidate.position}</span></h6>
                                     <p className="text-dark mt-3 mb-3 fs-8">{truncateWord(candidate.manifesto, 70)}.</p>
-                                    <button data-bs-toggle="modal" data-bs-target="#exampleModal"
-                                        className="btn btn-primary fw-bolder fs-8">View Manifesto </button>
+                                    <button
+                                        className="btn btn-primary fw-bolder fs-8" type='button' onClick={() => openModal(candidate)}>View Manifesto </button>
                                     {props.account ? candidate.votersWhoVotedForCandidate.map(voter => voter.toLowerCase()).includes(props.account.toLowerCase()) ? (
                                         <button className="btn btn-success fw-bolder px-4 ms-2 fs-8" disabled>Voted</button>
                                     ) : (
@@ -140,12 +121,41 @@ const Home = (props) => {
                             </div>
                         )) :
                             <div className='p-5 text-center'>
-                                <span className="pill-button btn-info text-white p-2" style={{ cursor: 'not-allowed' }}>Looks like you are not connected to Metamask!</span>
+                                <span className="pill-button btn-info text-white p-2" style={{ cursor: 'not-allowed' }}>Looks like you are not connected to any Metamask account!</span>
                             </div>}
 
                     </div>
                 </div>
             </div>
+
+            <Modal
+                isOpen={modalIsOpen}
+                onRequestClose={closeModal}
+                style={{
+                    overlay: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                    },
+                    content: {
+                        top: '50%',
+                        left: '50%',
+                        right: 'auto',
+                        bottom: 'auto',
+                        marginRight: '-50%',
+                        transform: 'translate(-50%, -50%)',
+                        maxWidth: '500px',
+                        padding: '30px',
+                        borderRadius: '10px',
+                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)'
+                    }
+                }}
+            >
+                <div style={{ textAlign: 'center' }}>
+                    <h2 style={{ marginBottom: '20px', color: '#333' }}>Manifesto</h2>
+                    <p style={{ fontSize: '16px', lineHeight: '1.6', color: '#555' }}>{manifesto}</p>
+                    <button className='btn btn-danger' style={{ marginTop: '30px' }} onClick={closeModal}>Close</button>
+                </div>
+            </Modal>
+
         </div>
     );
 };

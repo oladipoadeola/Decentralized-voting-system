@@ -19,7 +19,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [account, setAccount] = useState(null);
-  const [provider, setProvider] = useState(null);
+  const [theProvider, setTheProvider] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isElectionStarted, setIsElectionStarted] = useState(false);
   const [contract, setContract] = useState(null);
@@ -27,6 +27,7 @@ function App() {
   const [error, setError] = useState(null);
   const [metamaskInstalled, setMetamaskInstalled] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     connectToEthereum();
@@ -34,11 +35,11 @@ function App() {
       window.ethereum.on('accountsChanged', handleAccountsChanged);
       setMetamaskInstalled(true); // Set to true if MetaMask is detected
     }
-      return () => {
-        if (window.ethereum) {
-          window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        }
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
       }
+    }
   }, []);
 
   function handleAccountsChanged(accounts) {
@@ -56,17 +57,17 @@ function App() {
     }
   }
 
-  function removeAccountFromStorage(){
+  function removeAccountFromStorage() {
     localStorage.removeItem('isConnected');
     localStorage.removeItem('account');
     localStorage.removeItem('isAdmin')
   }
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
 
   async function connectToMetamask() {
     if (window.ethereum) {
       try {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        setProvider(provider);
+        setTheProvider(provider);
         await provider.send("eth_requestAccounts", []);
         const signer = provider.getSigner();
         const currentAddress = await signer.getAddress();
@@ -90,18 +91,17 @@ function App() {
   }
 
   useEffect(() => {
-      const storedIsConnected = localStorage.getItem('isConnected');
-      if (storedIsConnected === 'true') {
-        setIsConnected(true);
-        setAccount(localStorage.getItem('account'));
-      }
-      fetchAdminStatus();
-      getCandidatesList();
+    const storedIsConnected = localStorage.getItem('isConnected');
+    if (storedIsConnected === 'true') {
+      setIsConnected(true);
+      setAccount(localStorage.getItem('account'));
+    }
+    fetchAdminStatus();
+    getCandidatesList();
   }, []);
   const fetchAdminStatus = async () => {
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      setProvider(provider);
+      setTheProvider(provider);
       await provider.send("eth_requestAccounts", []);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress, Election.abi, signer);
@@ -126,9 +126,8 @@ function App() {
   const getCandidatesList = async () => {
 
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
       await provider.send('eth_requestAccounts', []);
-      setProvider(provider);
+      setTheProvider(provider);
       const contract = new ethers.Contract(
         contractAddress,
         Election.abi,
@@ -146,59 +145,55 @@ function App() {
   };
 
 
-      // Function to start the election
-      const startElection = async () => {
-        try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const abi = Election.abi; 
-            const contract = new ethers.Contract(contractAddress, abi, provider.getSigner());
+  // Function to start the election
+  const startElection = async () => {
+    try {
+      const abi = Election.abi;
+      const contract = new ethers.Contract(contractAddress, abi, provider.getSigner());
 
-            const tx = await contract.startElection();
-            await tx.wait();
-            const isElectionStarted = await contract.electionStarted();
-            setIsElectionStarted(isElectionStarted);    
+      const tx = await contract.startElection();
+      await tx.wait();
+      const isElectionStarted = await contract.electionStarted();
+      setIsElectionStarted(isElectionStarted);
 
-            toast.success('Election started successfully');
-        } catch (error) {
-            setErrorMessage(error.message);
-            toast.error(extractErrorCode(error.message))
+      toast.success('Election started successfully');
+    } catch (error) {
+      setErrorMessage(error.message);
+      toast.error(extractErrorCode(error.message))
 
-        }
-    };
+    }
+  };
 
-    const endElection = async () => {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const abi = Election.abi; 
-        const contract = new ethers.Contract(contractAddress, abi, provider.getSigner());
-        
-        try {
-            const tx = await contract.endElection();
-            
-            await tx.wait();
-            const isElectionStarted = await contract.electionStarted();
-            setIsElectionStarted(isElectionStarted);  
-            toast.info('Election ended successfully');
-        } catch (error) {
-            setErrorMessage(error.message);
-            toast.error(extractErrorCode(error.message))
+  const endElection = async () => {
+    const abi = Election.abi;
+    const contract = new ethers.Contract(contractAddress, abi, provider.getSigner());
 
-        }
-    };
-    
+    try {
+      const tx = await contract.endElection();
 
-    const connectToEthereum = async () => {
-        try {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);               
-            const contract = new ethers.Contract(contractAddress, Election.abi, provider.getSigner());
+      await tx.wait();
+      const isElectionStarted = await contract.electionStarted();
+      setIsElectionStarted(isElectionStarted);
+      toast.info('Election ended successfully');
+    } catch (error) {
+      setErrorMessage(error.message);
+      toast.error(extractErrorCode(error.message))
 
-        const isElectionStarted = await contract.electionStarted();
-        setIsElectionStarted(isElectionStarted);  
+    }
+  };
 
-        } catch (error) {
-            setErrorMessage(error.message);
-        }
-    };
-  
+
+  const connectToEthereum = async () => {
+    try {
+      const contract = new ethers.Contract(contractAddress, Election.abi, provider.getSigner());
+      const isElectionStarted = await contract.electionStarted();
+      setIsElectionStarted(isElectionStarted);
+
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
   const ProtectedRoute = ({ element, ...rest }) => {
     if (!isAdmin) {
       return isConnected && error === null ? (
@@ -206,10 +201,22 @@ function App() {
       ) : (
         <Navigate to="/login" replace />
       );
-    } 
+    }
     return <React.Fragment {...rest} element={element} />
-    
+
   };
+
+  // Show loader
+  function showLoader() {
+    setIsLoading(true)
+    console.log('Loader displayed');
+  }
+
+  // Hide loader
+  function hideLoader() {
+    console.log('Loader hidden');
+    setIsLoading(false)
+  }
 
   useEffect(() => {
     setTimeout(() => {
@@ -221,40 +228,40 @@ function App() {
     <div className="App">
       <BrowserRouter>
         {metamaskInstalled ? (
-          <Layout error={error} isConnected={isConnected} isAdmin={isAdmin} isElectionStarted={isElectionStarted} startElection = {startElection} endElection ={endElection}>
-           {loading ? (
-              <Loader/>
+          <Layout error={error} isConnected={isConnected} isAdmin={isAdmin} isElectionStarted={isElectionStarted} startElection={startElection} endElection={endElection}>
+            {loading ? (
+              <Loader />
             ) : (
-            <div className="main-content">
-              <ToastContainer position="bottom-right" draggable pauseOnHover theme='dark' />
-              <Routes>
-                <Route path="/" element={<Home candidates={candidates} contract={contract} account={account} error={error} isElectionStarted={isElectionStarted} isAdmin={isAdmin}/>} />
-                <Route path="/login" element={<Login isConnected={isConnected} connectToMetamask={connectToMetamask} account={account} />} />
+              <div className="main-content">
+                <ToastContainer position="bottom-right" draggable pauseOnHover theme='dark' />
+                <Routes>
+                  <Route path="/" element={<Home candidates={candidates} contract={contract} account={account} error={error} isElectionStarted={isElectionStarted} isAdmin={isAdmin} isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} />} />
+                  <Route path="/login" element={<Login isConnected={isConnected} connectToMetamask={connectToMetamask} account={account} />} />
 
-                <Route path="/result"
-                  element={
-                    <ProtectedRoute>
-                      <Result />
-                    </ProtectedRoute>
-                  }
-                />
+                  <Route path="/result"
+                    element={
+                      <ProtectedRoute>
+                        <Result />
+                      </ProtectedRoute>
+                    }
+                  />
 
-                <Route path="/voter-registration"
-                  element={
-                    <ProtectedRoute>
-                      <VoterRegistration />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="/candidate-registration"
-                  element={
-                    <ProtectedRoute>
-                      <CandidateRegistration />
-                    </ProtectedRoute>
-                  }
-                />
-              </Routes>
-            </div>
+                  <Route path="/voter-registration"
+                    element={
+                      <ProtectedRoute>
+                        <VoterRegistration isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/candidate-registration"
+                    element={
+                      <ProtectedRoute>
+                        <CandidateRegistration isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+              </div>
             )}
           </Layout>
         ) : (
