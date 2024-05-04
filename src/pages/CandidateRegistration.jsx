@@ -60,7 +60,7 @@ function CandidateRegistration(props) {
                     clearInterval(intervalId);
                     toast.success('Registration Successful');
                     setTimeout(() => {
-                        window.location.reload();
+                        window.location.href = '/';
                     }, 15000);
                 }
             }, 3000);
