@@ -1,6 +1,6 @@
-// const contractAddress = "0x46b142DD1E924FAb83eCc3c08e4D46E82f005e0E"; //hardhat
-const contractAddress = "0xab16A69A5a8c12C732e0DEFF4BE56A70bb64c926" //linea
-// const contractAddress = "0xB468647B04bF657C9ee2de65252037d781eABafD" //volta
+// const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; //hardhat
+// const contractAddress = "0xab16A69A5a8c12C732e0DEFF4BE56A70bb64c926" //linea
+const contractAddress = "0x52173b6ac069619c206b9A0e75609fC92860AB2A" //volta
 
 const data = {
     firstNames: [
@@ -40,3 +40,6 @@ const data = {
 };
 
 module.exports = { contractAddress, data };
+
+
+// New RPC url: https://linea-sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161

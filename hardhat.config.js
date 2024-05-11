@@ -31,28 +31,25 @@ module.exports = {
     paths: {
         artifacts: './src/artifacts/',
     },
-   defaultNetwork: "linea",
+   // defaultNetwork: "linea",
    networks: {
       hardhat: {
         chainId: 1337
       },
-      // volta: {
-      //    chainId: 73799,
-      //    url: API_URL,
-      //    accounts: [`0x${PRIVATE_KEY}`],
-      //    gas: 210000000,
-      //    gasPrice: 800000000000,
-      // }
-
-      
-      linea: {
-         chainId: 59141,
+      volta: {
+         chainId: 73799,
          url: API_URL,
          accounts: [`0x${PRIVATE_KEY}`],
-         // gas: 210000000,
-         // gasPrice: 800000000000,
+        //  gas: 210000000,
+        //  gasPrice: 800000000000,
       }
+      // linea: {
+      //    chainId: 59141,
+      //    url: API_URL,
+      //    accounts: [`0x${PRIVATE_KEY}`],
+      //    // gas: 210000000,
+      //    // gasPrice: 800000000000,
+      // }
       
    },
 }
-// 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
