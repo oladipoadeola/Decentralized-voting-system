@@ -42,14 +42,14 @@ module.exports = {
          accounts: [`0x${PRIVATE_KEY}`],
         //  gas: 210000000,
         //  gasPrice: 800000000000,
+      },
+      linea: {
+         chainId: 59141,
+         url: API_URL,
+         accounts: [`0x${PRIVATE_KEY}`],
+         // gas: 210000000,
+         // gasPrice: 800000000000,
       }
-      // linea: {
-      //    chainId: 59141,
-      //    url: API_URL,
-      //    accounts: [`0x${PRIVATE_KEY}`],
-      //    // gas: 210000000,
-      //    // gasPrice: 800000000000,
-      // }
       
    },
 }
