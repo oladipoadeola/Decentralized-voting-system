@@ -4,6 +4,8 @@ import extractErrorCode from '../helpers/extractErrorCode';
 import { toast } from 'react-toastify';
 import Loader from '../components/Loader';
 import Modal from 'react-modal';
+import MessageLink from '../components/MessageLink';
+import ReasonModal from '../components/ReasonsModal';
 
 const customStyles = {
     content: {
@@ -44,7 +46,10 @@ const Home = (props) => {
             }, 3000);
         } catch (error) {
             props.hideLoader();
-            toast.error(extractErrorCode(error.message));
+            toast.error(
+                <MessageLink error={error} openReasonModal={props.openReasonModal} />
+            );
+
         }
     };
 
@@ -78,6 +83,24 @@ const Home = (props) => {
 
     function closeModal() {
         setIsOpen(false);
+    }
+
+    let modalStyle = {
+        overlay: {
+            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+        },
+        content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+            maxWidth: '500px',
+            padding: '30px',
+            borderRadius: '10px',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)'
+        }
     }
     return (
         <div>
@@ -131,23 +154,7 @@ const Home = (props) => {
             <Modal
                 isOpen={modalIsOpen}
                 onRequestClose={closeModal}
-                style={{
-                    overlay: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                    },
-                    content: {
-                        top: '50%',
-                        left: '50%',
-                        right: 'auto',
-                        bottom: 'auto',
-                        marginRight: '-50%',
-                        transform: 'translate(-50%, -50%)',
-                        maxWidth: '500px',
-                        padding: '30px',
-                        borderRadius: '10px',
-                        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)'
-                    }
-                }}
+                style={modalStyle}
             >
                 <div style={{ textAlign: 'center' }}>
                     <h2 style={{ marginBottom: '20px', color: '#333' }}>Manifesto</h2>
@@ -156,6 +163,11 @@ const Home = (props) => {
                 </div>
             </Modal>
 
+            <ReasonModal openErrorReasonModal={props.openErrorReasonModal} closeReasonModal={props.closeReasonModal} errorReasons={[
+                'You are not a registered voter',
+                'You have already voted for a candidate in this position',
+                'Election has not started yet'
+            ]} />
         </div>
     );
 };

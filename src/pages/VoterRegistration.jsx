@@ -5,6 +5,9 @@ import { contractAddress } from '../constant/constant';
 import { toast } from 'react-toastify';
 import extractErrorCode from "../helpers/extractErrorCode";
 import Loader from '../components/Loader';
+import { Navigate } from 'react-router-dom';
+import ReasonModal from '../components/ReasonsModal';
+import MessageLink from '../components/MessageLink';
 
 function VoterRegistration(props) {
     const [formData, setFormData] = useState({
@@ -73,8 +76,9 @@ function VoterRegistration(props) {
 
         } catch (error) {
             props.hideLoader();
-            toast.error(extractErrorCode(error.toString()))
-            // toast.error("Seems like you have already registered or the input email already exist")
+            toast.error(
+                <MessageLink error={error} openReasonModal={props.openReasonModal} />
+            );               // toast.error("Seems like you have already registered or the input email already exist")
         }
     };
 
@@ -91,7 +95,7 @@ function VoterRegistration(props) {
         <>
             {props.isLoading ? <Loader /> : ''}
 
-            <div className="registration-container">
+            {!props.isAdmin ? (<div className="registration-container">
                 <div className="container mt-5 mb-5">
                     <h4 className="mb-4">Voter's Registration Form</h4>
                     <form onSubmit={handleSubmit}>
@@ -122,7 +126,12 @@ function VoterRegistration(props) {
                         <button type="submit" className="btn btn-primary">Register</button>
                     </form>
                 </div>
-            </div>
+            </div>) : <Navigate to="/"></Navigate>}
+
+            <ReasonModal openErrorReasonModal={props.openErrorReasonModal} closeReasonModal={props.closeReasonModal} errorReasons={[
+                'Email address already exists',
+                'You are already a registered voter',
+            ]} />
         </>
     );
 }

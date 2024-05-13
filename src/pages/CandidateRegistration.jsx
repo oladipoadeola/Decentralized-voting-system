@@ -5,6 +5,8 @@ import { contractAddress } from '../constant/constant';
 import extractErrorCode from "../helpers/extractErrorCode";
 import { toast } from 'react-toastify';
 import Loader from "../components/Loader";
+import ReasonModal from "../components/ReasonsModal";
+import MessageLink from "../components/MessageLink";
 
 function CandidateRegistration(props) {
     const [formData, setFormData] = useState({
@@ -66,7 +68,9 @@ function CandidateRegistration(props) {
             }, 3000);
         } catch (error) {
             props.hideLoader();
-            toast.error(extractErrorCode(error.toString()))
+            toast.error(
+                <MessageLink error={error} openReasonModal={props.openReasonModal} />
+            );        
         }
     };
 
@@ -119,6 +123,11 @@ function CandidateRegistration(props) {
                     </form>
                 </div>
             </div>
+
+            <ReasonModal openErrorReasonModal={props.openErrorReasonModal} closeReasonModal={props.closeReasonModal} errorReasons={[
+                'Cannot register candidates after election has started',
+                'Email address already exists',
+            ]} />
         </>
     );
 }

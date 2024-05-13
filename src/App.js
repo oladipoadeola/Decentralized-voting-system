@@ -28,6 +28,7 @@ function App() {
   const [metamaskInstalled, setMetamaskInstalled] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [openErrorReasonModal, setOpenErrorReasonModal] = useState(false);
 
   useEffect(() => {
     connectToEthereum();
@@ -218,6 +219,14 @@ function App() {
     setIsLoading(false)
   }
 
+  function openReasonModal(errors) {
+    setOpenErrorReasonModal(true);
+  }
+
+  function closeReasonModal() {
+    setOpenErrorReasonModal(false);
+  }
+
   useEffect(() => {
     setTimeout(() => {
       setLoading(false);
@@ -235,7 +244,7 @@ function App() {
               <div className="main-content">
                 <ToastContainer position="bottom-right" draggable pauseOnHover theme='dark' />
                 <Routes>
-                  <Route path="/" element={<Home candidates={candidates} contract={contract} account={account} error={error} isElectionStarted={isElectionStarted} isAdmin={isAdmin} isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} />} />
+                  <Route path="/" element={<Home candidates={candidates} contract={contract} account={account} error={error} isElectionStarted={isElectionStarted} isAdmin={isAdmin} isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} openReasonModal={openReasonModal} closeReasonModal={closeReasonModal} openErrorReasonModal={openErrorReasonModal} />} />
                   <Route path="/login" element={<Login isConnected={isConnected} connectToMetamask={connectToMetamask} account={account} />} />
 
                   <Route path="/result"
@@ -249,14 +258,14 @@ function App() {
                   <Route path="/voter-registration"
                     element={
                       <ProtectedRoute>
-                        <VoterRegistration isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} />
+                        <VoterRegistration isAdmin ={isAdmin} isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} openReasonModal={openReasonModal} closeReasonModal={closeReasonModal} openErrorReasonModal={openErrorReasonModal} />
                       </ProtectedRoute>
                     }
                   />
                   <Route path="/candidate-registration"
                     element={
                       <ProtectedRoute>
-                        <CandidateRegistration isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} />
+                        <CandidateRegistration isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} openReasonModal={openReasonModal} closeReasonModal={closeReasonModal} openErrorReasonModal={openErrorReasonModal} />
                       </ProtectedRoute>
                     }
                   />

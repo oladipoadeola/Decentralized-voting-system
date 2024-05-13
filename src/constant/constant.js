@@ -1,6 +1,6 @@
 //  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; //hardhat
-const contractAddress = "0x32EEce76C2C2e8758584A83Ee2F522D4788feA0f" //linea
-//const contractAddress = "0x52173b6ac069619c206b9A0e75609fC92860AB2A" //volta
+// const contractAddress = "0x32EEce76C2C2e8758584A83Ee2F522D4788feA0f" //linea
+const contractAddress = "0x52173b6ac069619c206b9A0e75609fC92860AB2A" //volta
 
 const data = {
     firstNames: [
