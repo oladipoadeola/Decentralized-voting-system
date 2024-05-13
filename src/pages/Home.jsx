@@ -28,7 +28,7 @@ const Home = (props) => {
             }
 
             if (!props.isConnected) {
-                toast.error("You have to login to vote. Go to the login page");
+                toast.error(!props.isAdmin ? "You have to login to vote. Go to the login page" : 'You cannot vote as an admin');
                 return;
             }
 
