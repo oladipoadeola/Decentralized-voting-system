@@ -249,7 +249,7 @@ function App() {
                   <Route path="/voter-registration"
                     element={
                       <ProtectedRoute>
-                        <VoterRegistration isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} />
+                        <VoterRegistration isAdmin={isAdmin} isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} />
                       </ProtectedRoute>
                     }
                   />

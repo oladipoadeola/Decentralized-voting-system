@@ -5,6 +5,7 @@ import { contractAddress } from '../constant/constant';
 import { toast } from 'react-toastify';
 import extractErrorCode from "../helpers/extractErrorCode";
 import Loader from '../components/Loader';
+import { Navigate } from 'react-router-dom';
 
 function VoterRegistration(props) {
     const [formData, setFormData] = useState({
@@ -91,7 +92,7 @@ function VoterRegistration(props) {
         <>
             {props.isLoading ? <Loader /> : ''}
 
-            <div className="registration-container">
+            {!props.isAdmin ? (<div className="registration-container">
                 <div className="container mt-5 mb-5">
                     <h4 className="mb-4">Voter's Registration Form</h4>
                     <form onSubmit={handleSubmit}>
@@ -122,7 +123,7 @@ function VoterRegistration(props) {
                         <button type="submit" className="btn btn-primary">Register</button>
                     </form>
                 </div>
-            </div>
+            </div>) : <Navigate to="/"></Navigate>}
         </>
     );
 }
