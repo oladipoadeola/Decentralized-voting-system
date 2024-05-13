@@ -25,8 +25,13 @@ const Home = (props) => {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const handleVote = async (candidateId) => {
         try {
-            if (!props.contract) {
-                throw new Error('Contract not initialized');
+            // if (!props.contract) {
+            //     throw new Error('Contract not initialized');
+            // }
+
+            if (!props.isConnected) {
+                toast.error("You have to login to vote. Go to the login page");
+                return;
             }
 
             props.showLoader();
