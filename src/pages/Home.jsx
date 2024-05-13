@@ -27,6 +27,11 @@ const Home = (props) => {
                 throw new Error('Contract not initialized');
             }
 
+            if (!props.isConnected) {
+                toast.error("You have to login to vote. Go to the login page");
+                return;
+            }
+
             props.showLoader();
             const transaction = await props.contract.vote(candidateId);
             const transactionHash = transaction.hash;

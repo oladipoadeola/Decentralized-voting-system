@@ -235,7 +235,7 @@ function App() {
               <div className="main-content">
                 <ToastContainer position="bottom-right" draggable pauseOnHover theme='dark' />
                 <Routes>
-                  <Route path="/" element={<Home candidates={candidates} contract={contract} account={account} error={error} isElectionStarted={isElectionStarted} isAdmin={isAdmin} isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} />} />
+                  <Route path="/" element={<Home candidates={candidates} contract={contract} account={account} error={error} isElectionStarted={isElectionStarted} isAdmin={isAdmin} isLoading={isLoading} showLoader={showLoader} hideLoader={hideLoader} isConnected={isConnected} />} />
                   <Route path="/login" element={<Login isConnected={isConnected} connectToMetamask={connectToMetamask} account={account} />} />
 
                   <Route path="/result"
